@@ -1,3 +1,6 @@
+import os 
+from django.conf import settings
+from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator
 from .models import SiteSettings,Article, Project, Skill
@@ -58,3 +61,9 @@ def projects(request):
 
 def achievements(request):
     return render(request, "achievements.html")
+
+
+def ads_txt_view(request):
+    with open(os.path.join(settings.STATIC_ROOT,'ads.txt')) as file:
+        file_content = file.readlines()
+    return HttpResponse(file_content, content_type="text/plain")

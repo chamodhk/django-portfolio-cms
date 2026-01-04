@@ -28,7 +28,8 @@ urlpatterns = [
     path('blog/<slug:article_slug>/', views.get_article, name='detail'),
     path('projects/', views.projects, name="projects"),
     path('achievements/',views.achievements,name="achievements"),
-    path('summernote/', include('django_summernote.urls'))
+    path('summernote/', include('django_summernote.urls')),
+    path("ads.txt", views.ads_txt_view)
 ]
 
 if settings.DEBUG:

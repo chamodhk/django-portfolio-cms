@@ -1,0 +1,10 @@
+chamodh.me, www.chamodh.me, 167-172-72-104.nip.io {
+	handle_path /media/* {
+		root * /srv/media
+		file_server
+	}
+
+	handle {
+		reverse_proxy web:8000
+	}
+}

@@ -12,7 +12,7 @@ from django.db.models import Q
 
 def home(request):
     settings = SiteSettings.objects.first()
-    article = Article.objects.order_by('-date')[0]
+    article = Article.objects.order_by('-date').first()
     return render(request, "home.html", {
         "settings": settings,
         "article":article

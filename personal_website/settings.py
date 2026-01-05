@@ -156,7 +156,7 @@ if not DEBUG:
 
 CSRF_COOKIE_HTTPONLY = False
 if not DEBUG:
-    SECURE_SSL_REDIRECT = True
+    SECURE_SSL_REDIRECT = os.environ.get("DJANGO_SECURE_SSL_REDIRECT", "True") == "True"
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SECURE = True
 

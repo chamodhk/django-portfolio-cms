@@ -7,3 +7,4 @@ whitenoise==6.11.0
 django-autoslug==1.9.9
 django-summernote==0.8.20.0
 django-taggit==6.1.0
+martor==1.8.2

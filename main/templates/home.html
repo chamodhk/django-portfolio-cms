@@ -123,12 +123,14 @@
         Read the blog
       </a>
 
+      {% if article %}
       <a href="{% url 'detail' article.slug %}"
          class="inline-flex items-center px-4 py-2 rounded-md
                 border border-white/60 text-white text-sm
                 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/60 transition">
         Latest
       </a>
+      {% endif %}
     </div>
   </div>
 </div>

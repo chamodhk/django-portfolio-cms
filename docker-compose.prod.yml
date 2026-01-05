@@ -1,0 +1,33 @@
+services:
+  web:
+    build: .
+    restart: unless-stopped
+    env_file:
+      - .env
+      - deployment.env
+    command: >-
+      sh -c "python manage.py migrate --noinput &&
+      gunicorn personal_website.wsgi:application --bind 0.0.0.0:8000"
+    volumes:
+      - media:/app/media
+      - db:/app/db
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - media:/srv/media:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
+
+volumes:
+  media:
+  db:
+  caddy_data:
+  caddy_config:

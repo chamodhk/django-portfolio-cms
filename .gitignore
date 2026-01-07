@@ -80,3 +80,4 @@ docker-compose.override.yml
 # Misc
 # =========================
 .cache/
+.style-rollback-backup/

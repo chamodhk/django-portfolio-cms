@@ -1,19 +1,11 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static sanitize_html %}
 {% block meta %}
-  <title> 
-      {% if article.meta_title %}
-        {{ article.meta_title }}
-      {% else %}
-        {{ article.title }}
-      {% endif %}
-  </title>
-
   <meta name="description"
     content="{% if article.meta_description %}
                 {{ article.meta_description }}
              {% else %}
-                {{ article.content|striptags|truncatechars:150}}
+                {{ article.body|striptags|truncatechars:150}}
               {% endif %}">
 
 
@@ -31,7 +23,7 @@
 
 {% endblock %}
 
-{% block title %}{{ article.title }} · Blog{% endblock %}
+{% block title %}{% if article.meta_title %}{{ article.meta_title }}{% else %}{{ article.title }} · Blog{% endif %}{% endblock %}
 {% block css %}<link rel="stylesheet" href="{% static 'css/summernote-content.css' %}">{% endblock %}
 
 {% block content %}
@@ -103,7 +95,7 @@
       <!-- ARTICLE BODY -->
       <article class="w-full md:w-3/4">
         <div class="summernote-content">
-  {{ article.body|safe }}
+  {{ article.body|sanitize_html }}
 </div>
       </article>
 
@@ -161,6 +153,119 @@
     </div>
   </section>
 
+<section id="comments" class="mx-auto max-w-7xl px-6 pt-4 pb-20">
+
+  <h2 class="mb-6 text-2xl mx-auto  text-neutral-100">
+    Comments
+  </h2>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+
+    <!-- LEFT SIDE: COMMENTS -->
+    <div class="space-y-4">
+      {% for comment in comments %}
+
+        <article class="rounded-lg bg-neutral-900/70 p-5 shadow-md shadow-black/20">
+          <h3 class="text-base font-semibold text-neutral-100">
+            {{ comment.name }}
+          </h3>
+
+          <p class="mb-3 mt-1 text-xs text-neutral-500">
+            Posted on {{ comment.created_date_time|date:"F j, Y" }}
+          </p>
+
+          <p class="whitespace-pre-line leading-relaxed text-neutral-300">
+            {{ comment.body }}
+          </p>
+        </article>
+
+      {% empty %}
+
+        <div class="rounded-lg border border-dashed border-neutral-700 bg-neutral-900/40 p-5 text-center">
+          <p class="text-sm text-neutral-400">
+            No comments yet. Be the first to comment.
+          </p>
+        </div>
+
+      {% endfor %}
+    </div>
+
+
+    <!-- RIGHT SIDE: FORM -->
+    <form
+      method="post"
+      action="#comments"
+      class="h-fit rounded-xl border border-neutral-700 bg-[#041a33] p-6 shadow-xl shadow-black/20"
+    >
+
+      {% csrf_token %}
+
+      <h3 class="mb-5 text-lg font-semibold text-neutral-100">
+        Add a comment
+      </h3>
+
+      {% if comment_submitted %}
+        <div class="mb-5 rounded-md border border-emerald-700 bg-emerald-950/60 p-3 text-sm text-emerald-200">
+          Your comment was submitted and is awaiting approval.
+        </div>
+      {% endif %}
+
+      {% for error in comment_form.non_field_errors %}
+        <p class="mb-3 text-sm text-red-400">
+          {{ error }}
+        </p>
+      {% endfor %}
+
+
+      <!-- NAME -->
+      <div class="mb-4">
+        <label
+          class="mb-2 block text-sm font-medium text-neutral-300"
+          for="{{ comment_form.name.id_for_label }}"
+        >
+          Name
+        </label>
+
+        {{ comment_form.name }}
+
+        {% for error in comment_form.name.errors %}
+          <p class="mt-1 text-sm text-red-400">
+            {{ error }}
+          </p>
+        {% endfor %}
+      </div>
+
+
+      <!-- COMMENT -->
+      <div class="mb-4">
+        <label
+          class="mb-2 block text-sm font-medium text-neutral-300"
+          for="{{ comment_form.body.id_for_label }}"
+        >
+          Comment
+        </label>
+
+        {{ comment_form.body }}
+
+        {% for error in comment_form.body.errors %}
+          <p class="mt-1 text-sm text-red-400">
+            {{ error }}
+          </p>
+        {% endfor %}
+      </div>
+
+
+      <button
+        type="submit"
+        class="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400"
+      >
+        Submit
+      </button>
+
+    </form>
+
+  </div>
+</section>
 </div>
 
 {% endblock %}

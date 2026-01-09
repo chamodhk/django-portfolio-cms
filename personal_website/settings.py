@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'django.contrib.sites',
     'django.contrib.sitemaps',
     'main.apps.MainConfig',
+    'shortner.apps.ShortnerConfig',
     'django_summernote',
     'taggit'
 ]

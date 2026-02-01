@@ -1,0 +1,65 @@
+name: Deploy production
+
+on:
+    workflow_run:
+        workflows:
+            - CI
+        types:
+            - completed
+    workflow_dispatch:
+
+permissions:
+    contents: read
+
+concurrency:
+    group: production-deployment
+    cancel-in-progress: false
+
+jobs:
+    deploy:
+        if: >-
+            github.event_name == 'workflow_dispatch' ||
+            (github.event.workflow_run.conclusion == 'success' &&
+            github.event.workflow_run.head_branch == 'main')
+        runs-on: ubuntu-latest
+
+        environment:
+            name: production
+            url: https://chamodh.me
+
+        steps:
+            - name: Configure SSH
+              env:
+                  DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+                  DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+                  DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+              run: |
+                  install -m 700 -d ~/.ssh
+                  printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+                  chmod 600 ~/.ssh/deploy_key
+                  ssh-keyscan -p "$DEPLOY_PORT" -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
+
+            - name: Deploy application
+              env:
+                  DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+                  DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+                  DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+                  DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
+              run: |
+                  ssh \
+                    -i ~/.ssh/deploy_key \
+                    -p "$DEPLOY_PORT" \
+                    "$DEPLOY_USER@$DEPLOY_HOST" \
+                    "cd '$DEPLOY_PATH' &&
+                     sh ./backup.sh &&
+                     git pull --ff-only origin main &&
+                     docker compose -f docker-compose.prod.yml up -d --build --remove-orphans &&
+                     docker compose -f docker-compose.prod.yml ps"
+
+            - name: Verify website
+              run: |
+                  curl --fail \
+                    --retry 6 \
+                    --retry-delay 10 \
+                    --retry-all-errors \
+                    https://chamodh.me/

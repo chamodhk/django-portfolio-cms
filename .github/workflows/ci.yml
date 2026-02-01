@@ -1,0 +1,65 @@
+name: CI
+
+on:
+    push:
+        branches:
+            - main
+    pull_request:
+        branches:
+            - main
+
+permissions:
+    contents: read
+
+jobs:
+    test:
+        runs-on: ubuntu-latest
+
+        env:
+            DJANGO_SECRET_KEY: ci-only-secret-key
+            DJANGO_DEBUG: "False"
+            DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1
+            CSRF_TRUSTED_ORIGINS: http://localhost
+
+        steps:
+            - name: Check out repository
+              uses: actions/checkout@v6
+
+            - name: Set up Python
+              uses: actions/setup-python@v6
+              with:
+                  python-version: "3.12"
+                  cache: pip
+
+            - name: Install Python dependencies
+              run: pip install -r requirements.txt
+
+            - name: Create database directory
+              run: mkdir -p db
+
+            - name: Check Django configuration
+              run: python manage.py check
+
+            - name: Check for missing migrations
+              run: python manage.py makemigrations --check --dry-run
+
+            - name: Apply migrations
+              run: python manage.py migrate --noinput
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v6
+              with:
+                  node-version: "22"
+                  cache: npm
+
+            - name: Install frontend dependencies
+              run: npm ci
+
+            - name: Build Tailwind CSS
+              run: npm run css:build
+
+            - name: Verify generated CSS is committed
+              run: git diff --exit-code -- main/static/css/output.css
+
+            - name: Build production Docker image
+              run: docker build -t personal-website-ci .
